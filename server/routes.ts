@@ -114,6 +114,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Search profiles in a tenant
+  app.get("/api/:tenantId/profiles/search", authenticateToken, async (req: any, res) => {
+    try {
+      const { tenantId } = req.params;
+      const { q } = req.query;
+      
+      // Verify user has access to this tenant
+      const userTenants = await storage.getTenantsByUserId(req.user.userId);
+      if (!userTenants.some(tenant => tenant.id === tenantId)) {
+        return res.status(403).json({ message: "Access denied to this tenant" });
+      }
+
+      if (!q || typeof q !== 'string') {
+        return res.status(400).json({ message: "Search query parameter 'q' is required" });
+      }
+
+      const profiles = await storage.searchProfiles(tenantId, q.trim());
+      res.json({ profiles });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Get profile details with test path
   app.get("/api/:tenantId/profiles/:profileId", authenticateToken, async (req: any, res) => {
     try {
@@ -131,7 +154,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const testPath = await storage.getTestPathByProfile(profileId);
-      
+      const previousTests = await storage.getHearingTestsByProfile(profileId);
+
       res.json({
         profile: {
           id: profile.id,
@@ -142,7 +166,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           department: profile.department,
           last_test_date: profile.lastTestDate
         },
-        test_path: testPath?.steps || []
+        test_path: testPath?.steps || [],
+        previous_tests: previousTests.map(test => ({
+          id: test.id,
+          test_date: test.testDate,
+          tester_id: test.testerId,
+          device_id: test.deviceId,
+          test_type: test.testType,
+          results: test.results,
+          next_test_due: test.nextTestDue
+        }))
       });
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });

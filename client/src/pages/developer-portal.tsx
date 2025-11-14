@@ -72,6 +72,9 @@ export default function DeveloperPortal() {
         case 'profile':
           response = await apiRequest("GET", "/api/acme-corp/profiles/emp-001");
           break;
+        case 'search-profiles':
+          response = await apiRequest("GET", "/api/acme-corp/profiles/search?q=John");
+          break;
         case 'submit-test':
           response = await apiRequest("POST", "/api/acme-corp/profiles/emp-001/tests", {
             test_metadata: {
@@ -244,7 +247,7 @@ export default function DeveloperPortal() {
                     <Info className="text-primary mt-0.5 mr-2" size={16} />
                     <div>
                       <p className="text-sm text-blue-800 dark:text-blue-300">
-                        <strong>Base URL:</strong> <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">http://localhost:5000</code>
+                        <strong>Base URL:</strong> <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">https://audiometer-mock-api.fly.dev</code>
                       </p>
                       <p className="text-sm text-blue-800 dark:text-blue-300 mt-1">
                         All endpoints return hardcoded data for development and testing purposes.
@@ -533,6 +536,67 @@ Authorization: Bearer {`{jwt_token}`}
 }`}
                       </pre>
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Search Profiles */}
+              <Card className="endpoint-card shadow-md mb-6">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-800 mr-3">GET</Badge>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">/api/{`{tenant_id}`}/profiles/search</h3>
+                    </div>
+                    <Button onClick={() => testEndpoint('search-profiles')} data-testid="button-test-search-profiles">
+                      <Play className="mr-1" size={16} />
+                      Test
+                    </Button>
+                  </div>
+                  
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">Search for employee profiles within a tenant by name, employee ID, or department.</p>
+                  
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Query Parameters</h4>
+                      <div className="space-y-2">
+                        <div className="flex items-center">
+                          <code className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm mr-2">q</code>
+                          <span className="text-gray-600 dark:text-gray-400 text-sm">Search query (required)</span>
+                        </div>
+                      </div>
+                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 mt-4">Example Request</h4>
+                      <pre className="bg-gray-50 dark:bg-gray-800 p-4 rounded-md text-sm">
+GET /api/acme-corp/profiles/search?q=John
+                      </pre>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Response (200)</h4>
+                      <pre className="bg-gray-50 dark:bg-gray-800 p-4 rounded-md text-sm json-viewer syntax-highlight overflow-x-auto">
+{`{
+  "profiles": [
+    {
+      "id": "emp-001",
+      "tenantId": "acme-corp",
+      "groupId": "factory-floor",
+      "employeeId": "E12345",
+      "firstName": "John",
+      "lastName": "Smith",
+      "dateOfBirth": "1985-06-15",
+      "department": "Manufacturing",
+      "lastTestDate": "2023-12-01"
+    }
+  ]
+}`}
+                      </pre>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md">
+                    <p className="text-sm text-amber-800 dark:text-amber-300">
+                      <strong>Search Features:</strong> Searches across first name, last name, full name, employee ID, and department. Case-insensitive partial matching.
+                    </p>
                   </div>
                 </CardContent>
               </Card>
